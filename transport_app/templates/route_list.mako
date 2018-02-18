@@ -65,8 +65,8 @@
             <tr onclick="document.location ='${request.route_url('route_view', uid=item.uid)}'">
                 <td>${item.uid}</td>
                 <td>${item.name}</td>
-                <td>${item.distance}</td>
-                <td>${item.base_price}</td>
+                <td>${item.distance} км</td>
+                <td>${item.base_price} грн</td>
                 <td>${len(item.shippings)}</td>
             </tr>
         % endfor

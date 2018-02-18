@@ -64,5 +64,44 @@
     <script type="text/javascript">
         deform.load()
     </script>
+    <div class="form-group  item-award item-award" title="" id="item-deformField3">
+        <label for="price_field" class="control-label required" id="req-price_field">
+            Цена (грн):
+        </label>
+        <input type="text" name="price" value="" id="price_field" disabled="disabled" class="disabled form-control ">
+    </div>
+    <script>
+        function recalculatePrice(){
+            var price = route_dict[$('#deformField4').val()] + drivers_dict[$('#deformField5').val()];
+            console.log(price);
+            if ($('#deformField3').val()) {
+                if ($('#deformField6').val()) {
+                    price += parseFloat($('#deformField3').val());
+                }
+                price += parseFloat($('#deformField3').val());
+            };
+            if ($('#deformField6').val()) {
+                price += drivers_dict[$('#deformField6').val()] || 0;
+            };
+            $('#price_field').val(price);
+
+        }
+        var drivers_dict = {};
+        var route_dict = {};
+        $.ajax({
+            'url': '${request.route_path('lookup')}',
+        }).done(function( data ) {
+            drivers_dict = data['drivers_dict'] || {};
+            route_dict = data['route_dict'] || {};
+            recalculatePrice();
+        }).fail(function() {
+            alert('Failed to load lookup data')
+        });
+
+        $('#deformField3').on('change', recalculatePrice);
+        $('#deformField4').on('change', recalculatePrice);
+        $('#deformField5').on('change', recalculatePrice);
+        $('#deformField6').on('change', recalculatePrice);
+    </script>
 </body>
 </html>

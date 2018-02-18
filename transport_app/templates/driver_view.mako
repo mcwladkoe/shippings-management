@@ -38,7 +38,7 @@
 
 <h1>${item.last_name} ${item.first_name} ${item.patronymic}</h1>
 <p><b>Email:</b> ${item.email}</p>
-<p><b>Стаж:</b> ${item.experience}</p>
+<p><b>Стаж:</b> ${item.experience} лет</p>
 
 <a class="btn btn-md btn-success" href="${request.route_url('driver_edit', uid=item.uid)}">
     Редактировать
@@ -48,8 +48,48 @@
 </a>
 
 
-% for i in item.shippings:
-% endfor
+<h4>Перевозки</h4>
+<table class="table table-bordered table-condensed table-hover table-striped">
+    <colgroup>
+        <col class="col-lg-2">
+        <col>
+        <col class="col-lg-2">
+        <col class="col-lg-2">
+        <col class="col-lg-1">
+        <col class="col-lg-1">
+    </colgroup>
+    <thead>
+        <tr>
+            <td>№ перевозки</td>
+            <td>Дата начала</td>
+            <td>Дата завершения</td>
+            <td>Маршрут</td>
+            <td>Премия</td>
+            <td>Цена</td>
+        </tr>
+    </thead>
+    <tbody>
+        <%
+            count = 0
+        %>
+        % for i in item.shippings:
+            <%
+                count = 1
+            %>
+            <tr onclick="document.location ='${request.route_url('shipping_view', uid=i.shipping.uid)}'">
+                <td>${i.shipping.uid}</td>
+                <td>${i.shipping.start_date}</td>
+                <td>${i.shipping.end_date}</td>
+                <td>${i.shipping.route.name}</td>
+                <td>${i.shipping.award}</td>
+                <td>${i.shipping.price}</td>
+            </tr>
+        % endfor
+        % if count == 0:
+            <tr><td colspan="6">Нет записей.</td></tr>
+        % endif
+    </tbody>
+</table>
 
 ##<a class="btn btn-default" href="${request.route_url('customer_order_add', customer_id=customer.uid)}">
 ##    Новый заказ

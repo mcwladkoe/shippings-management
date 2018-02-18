@@ -23,7 +23,7 @@ class ShippingView(colander.MappingSchema):
     start_date = colander.SchemaNode(colander.DateTime(), title="Начало рейса:")
     end_date = colander.SchemaNode(colander.DateTime(), title="Конец рейса:")
 
-    award = colander.SchemaNode(colander.Float(), title="Премия:")
+    award = colander.SchemaNode(colander.Float(), title="Премия (грн):")
 
     route_id = colander.SchemaNode(colander.Integer(), title="Маршрут:",
         widget=deform.widget.SelectWidget(values=Route.options())
@@ -86,7 +86,7 @@ class Shippings(BaseController):
                 return Response('Ошибка. Такого водителя id {} не существует'\
                     .format(appstruct['driver_1_id']))
             d1 = DriverShipping(driver_id = driver1.uid, shipping = item,
-                price = route.base_price * (100 + driver1.experience / 100.)
+                price = route.base_price * (100 + driver1.experience / 100. + item.award)
                 )
             item.price = d1.price
             if appstruct['driver_2_id']:
@@ -99,7 +99,7 @@ class Shippings(BaseController):
                             .format(appstruct['driver_2_id']
                     ))
                 d2 = DriverShipping(driver_id = driver2.uid, shipping = item,
-                    price = route.base_price * (100 + driver1.experience / 100.))
+                    price = route.base_price * (100 + driver2.experience / 100. + item.award))
                 item.price += d2.price
 
             item.created = datetime.utcnow()
@@ -119,7 +119,6 @@ class Shippings(BaseController):
 
             url = self.request.route_url('{}_list'.format(self.entity_name))
             return HTTPFound(url)
-
         return dict(form=form)
 
     @view_config(
@@ -139,7 +138,78 @@ class Shippings(BaseController):
     def edit(self):
         # TODO:
         # change drivers for edit
-        return BaseController.edit(self)
+        uid = int(self.request.matchdict['uid'])
+        item = DBSession.query(self.entity).filter_by(uid=uid).first()
+        if not item:
+            return HTTPFound(self.request.route_url('{}_list'.format(self.entity_name)))
+        form = self.form
+
+        if 'submit' in self.request.params:
+            controls = self.request.POST.items()
+            try:
+                appstruct = form.validate(controls)
+            except deform.ValidationFailure as e:
+                return dict(item=item, form=e.render())
+
+            # Change the content and redirect to the view
+            for field, value in appstruct.iteritems():
+                if hasattr(item, field):
+                    setattr(item, field, value)
+            item.updated = datetime.utcnow()
+            route = DBSession.query(Route).filter(Route.uid == item.route_id).first()
+            if not route:
+                return Response('Ошибка. Такого маршрута не существует')
+            if appstruct['driver_1_id'] == appstruct['driver_2_id']:
+                return Response('Ошибка. Водитель выбран два раза')
+            drivers = DBSession.query(DriverShipping).filter(DriverShipping.id == item.uid).all()
+            if appstruct['driver_1_id'] != drivers[0].driver_id:
+                driver = DBSession.query(Driver).filter(
+                    Driver.uid == appstruct['driver_1_id']
+                ).first()
+                if not driver:
+                    return Response('Ошибка. Такого водителя id {} не существует' \
+                                    .format(appstruct['driver_1_id']))
+                drivers[0].driver_id = driver.uid
+                drivers[0].price=route.base_price * (100 + driver.experience / 100.) + item.award
+                DBSession.add(drivers[0])
+                item.price = drivers[0].price
+            if appstruct['driver_2_id']:
+                driver = DBSession.query(Driver).filter(
+                    Driver.uid == appstruct['driver_2_id']
+                ).first()
+                if not driver:
+                    return Response('Ошибка. Такого водителя id {} не существует' \
+                                    .format(appstruct['driver_2_id']))
+                if len(drivers) == 2:
+                    if appstruct['driver_2_id'] != drivers[1].driver_id:
+
+                        drivers[1].driver_id = driver.uid
+                        drivers[1].price = route.base_price * (100 + driver.experience / 100.) + item.award
+                        DBSession.add(drivers[1])
+                        item.price += drivers[0].price
+                else:
+                    d2 = DriverShipping(driver_id=driver.uid, shipping=item,
+                                        price=route.base_price * (100 + driver.experience / 100. + item.award))
+                    item.price += d2.price
+                    DBSession.add(d2)
+            elif len(drivers) == 2:
+                DBSession.delete(drivers[1])
+            DBSession.flush()
+            item.updated = datetime.utcnow()
+            try:
+                DBSession.add(item)
+                DBSession.flush()
+            except IntegrityError as e:
+                log.exception(e)
+                return Response('Ошибка. {}'.format(e))
+            except SQLAlchemyError as e:
+                log.exception(e)
+                return Response('Ошибка СУБД')
+            url = self.request.route_url('{}_view'.format(self.entity_name), uid=uid)
+            return HTTPFound(url)
+
+        form = self.form.render(item.__dict__)
+        return dict(item=item, form=form)
 
 
     @view_config(route_name='shipping_delete', permission='edit')

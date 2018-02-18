@@ -66,7 +66,7 @@
                 <td>${item.uid}</td>
                 <td>${item.last_name} ${item.first_name} ${item.patronymic}</td>
                 <td>${item.email}</td>
-                <td>${item.experience}</td>
+                <td>${item.experience} лет</td>
                 <td>${len(item.shippings)}</td>
             </tr>
         % endfor

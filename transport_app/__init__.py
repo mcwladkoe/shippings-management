@@ -37,7 +37,7 @@ def main(global_config, **settings):
     config.add_route('route_view', '/route/{uid}')
     config.add_route('route_edit', '/route/{uid}/edit')
     config.add_route('route_delete', '/route/{uid}/delete')
-
+    config.add_route('lookup', '/lookup')
     config.add_route('shipping_list', '/shipping/list')
     config.add_route('shipping_add', '/shipping/add')
     config.add_route('shipping_view', '/shipping/{uid}')

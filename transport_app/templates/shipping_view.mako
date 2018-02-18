@@ -35,6 +35,21 @@
 <a class="btn" href="${request.route_url('driver_list')}">
     Перевозки
 </a>
+<h1>Перевозка № ${item.uid}</h1>
+<p><b>Начало поездки:</b> ${item.start_date}</p>
+<p><b>Конец поездки:</b> ${item.end_date}</p>
+<p><b>Маршрут:</b> <a href="${request.route_path('route_view', uid=item.route.uid)}">${item.route.name} (${item.route.distance} км)</a></p>
+<p><b>Премия:</b> ${item.award} грн.</p>
+<p><b>Водители:</b>
+    <ul>
+        % for i in item.drivers:
+            <li>
+                <a href="${request.route_path('driver_view', uid=i.driver.uid)}">${i.driver.full_name}</a>
+            </li>
+        % endfor
+    </ul>
+</p>
+<p><b>Стоимость:</b> ${item.price} грн.</p>
 
 ##<h1>${item.last_name} ${item.first_name} ${item.patronymic}</h1>
 ##<p><b>Email:</b> ${item.email}</p>
@@ -46,10 +61,6 @@
 <a class="btn btn-md btn-danger" href="${request.route_url('shipping_delete', uid=item.uid)}">
     Удалить
 </a>
-
-
-% for i in item.shippings:
-% endfor
 
 ##<a class="btn btn-default" href="${request.route_url('customer_order_add', customer_id=customer.uid)}">
 ##    Новый заказ

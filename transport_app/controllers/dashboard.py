@@ -1,18 +1,5 @@
-from pyramid.httpexceptions import HTTPFound
-from pyramid.security import (
-    remember,
-    forget,
-    )
 
-from pyramid.view import (
-    view_config,
-    view_defaults
-    )
-
-from ..security import (
-    USERS,
-    check_password
-)
+from pyramid.view import view_config
 
 
 @view_config(route_name='dashboard', renderer='../templates/dashboard.mako', permission='edit')

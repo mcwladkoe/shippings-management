@@ -37,7 +37,7 @@
 </a>
 <p><b>Название:</b> ${item.name}</p>
 <p><b>Расстояние:</b> ${item.distance} км</p>
-<p><b>Стоимость:</b> ${item.base_price} ₴</p>
+<p><b>Стоимость:</b> ${item.base_price} грн</p>
 
 <a class="btn btn-md btn-success" href="${request.route_url('route_edit', uid=item.uid)}">
     Редактировать
@@ -46,8 +46,45 @@
     Удалить
 </a>
 
-% for i in item.shippings:
-% endfor
+<h4>Перевозки</h4>
+<table class="table table-bordered table-condensed table-hover table-striped">
+    <colgroup>
+        <col class="col-lg-2">
+        <col>
+        <col class="col-lg-2">
+        <col class="col-lg-1">
+        <col class="col-lg-1">
+    </colgroup>
+    <thead>
+        <tr>
+            <td>№ перевозки</td>
+            <td>Дата начала</td>
+            <td>Дата завершения</td>
+            <td>Премия</td>
+            <td>Цена</td>
+        </tr>
+    </thead>
+    <tbody>
+        <%
+            count = 0
+        %>
+        % for i in item.shippings:
+            <%
+                count = 1
+            %>
+            <tr onclick="document.location ='${request.route_url('shipping_view', uid=i.uid)}'">
+                <td>${i.uid}</td>
+                <td>${i.start_date}</td>
+                <td>${i.end_date}</td>
+                <td>${i.award}</td>
+                <td>${i.price}</td>
+            </tr>
+        % endfor
+        % if count == 0:
+            <tr><td colspan="5">Нет записей.</td></tr>
+        % endif
+    </tbody>
+</table>
 
 ##<a class="btn btn-default" href="${request.route_url('customer_order_add', customer_id=customer.uid)}">
 ##    Новый заказ
